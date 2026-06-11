@@ -14,9 +14,11 @@ Datasets used:
 
 Early attempts and failure modes:
 1. Direct correspondence (invalid assumption)
+
 I initially tried simple matching based on neuron IDs, assuming there might be overlap or partial alignment between datasets. This quickly failed because IDs are completely independent across reconstructions. This made it clear that the problem had to be solved purely through graph structure.
 
 2. Strict structural matching (over-constrained)
+
 Next, I tried enforcing near-exact structural equivalence using local fingerprints (degree, triangle counts, and higher-order neighborhood structure).
 
 This approach produced very small or trivial matches:
@@ -27,11 +29,13 @@ The core issue was that requiring exact or near-exact isomorphism across noisy b
 
 Immediate idea:
 Star-based structure
+
 After these failures, I shifted to a more relaxed structural motif: the directed star.
 A star is defined as a single hub neuron projecting to many independent leaf neurons. Any two clean stars of the same size are isomorphic, which makes comparison across datasets straightforward. This approach produced much larger and more stable results, but it was also somewhat artificial from a biological perspective because it enforces a highly centralized structure that does not fully reflect how real neural circuits behave.
 
 Key insight:
 Shift toward natural structure
+
 At this point, I stepped back and reconsidered the problem from a more biological perspective. In my CS3 class, we were taught a useful principle when designing graph algorithms: when strict algorithmic constraints fail, it often helps to relax the model toward naturally occurring structures in the system being modeled.
 
 Since connectomics is fundamentally about biological wiring, I began thinking about how real neural systems organize information.
