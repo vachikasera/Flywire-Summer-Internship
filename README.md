@@ -25,16 +25,18 @@ This approach produced very small or trivial matches:
 
 The core issue was that requiring exact or near-exact isomorphism across noisy biological datasets is too restrictive. Even biologically conserved circuits do not preserve exact adjacency at the neuron level across reconstructions.
 
-Immediate idea: star-based structure
+Immediate idea:
+Star-based structure
 After these failures, I shifted to a more relaxed structural motif: the directed star.
 A star is defined as a single hub neuron projecting to many independent leaf neurons. Any two clean stars of the same size are isomorphic, which makes comparison across datasets straightforward. This approach produced much larger and more stable results, but it was also somewhat artificial from a biological perspective because it enforces a highly centralized structure that does not fully reflect how real neural circuits behave.
 
-Key insight: shift toward natural structure
+Key insight:
+Shift toward natural structure
 At this point, I stepped back and reconsidered the problem from a more biological perspective. In my CS3 class, we were taught a useful principle when designing graph algorithms: when strict algorithmic constraints fail, it often helps to relax the model toward naturally occurring structures in the system being modeled.
 
 Since connectomics is fundamentally about biological wiring, I began thinking about how real neural systems organize information.
 
-Neural circuits are not star-like; instead, they resemble:
+Neural circuits are not star-like. Instead, they resemble:
 - flow networks (signal propagation)
 - branching trees (divergent processing)
 - locally recurrent pathways (feedback loops)
