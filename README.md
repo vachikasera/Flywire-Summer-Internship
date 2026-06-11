@@ -1,10 +1,8 @@
 # Flywire-Summer-Internship
 
-Largest shared induced circuit across three Drosophila connectomes
-Technical report
-
 Problem setup:
 The goal of this project was to identify the largest set of neurons that appears consistently across three connectome datasets (MAOL, FAFB, and BANC), such that the induced directed subgraphs over those neurons are structurally equivalent and weakly connected.
+
 *A key difficulty is that neuron identifiers are not shared across datasets, meaning the problem is fundamentally one of structural alignment under unknown correspondence, not direct node matching.
 
 Datasets used:
@@ -23,7 +21,7 @@ Next, I tried enforcing near-exact structural equivalence using local fingerprin
 
 This approach produced very small or trivial matches:
 - In some cases, the method returned no valid circuits at all (0 nodes) due to overly strict constraints.
-- In more relaxed versions (old under Github links), it produced only very small subgraphs (3–7 nodes) that were structurally consistent but far too limited to represent meaningful circuits.
+- In more relaxed versions (the code is "old" under Github links), it produced only very small subgraphs (3–7 nodes) that were structurally consistent but far too limited to represent meaningful circuits.
 
 The core issue was that requiring exact or near-exact isomorphism across noisy biological datasets is too restrictive. Even biologically conserved circuits do not preserve exact adjacency at the neuron level across reconstructions.
 
@@ -38,15 +36,14 @@ Shift toward natural structure
 
 At this point, I stepped back and reconsidered the problem from a more biological perspective. In my CS3 class, we were taught a useful principle when designing graph algorithms: when strict algorithmic constraints fail, it often helps to relax the model toward naturally occurring structures in the system being modeled.
 
-Since connectomics is fundamentally about biological wiring, I began thinking about how real neural systems organize information.
-
-Neural circuits are not star-like. Instead, they resemble:
+Since connectomics is fundamentally about biological wiring, I began thinking about how real neural systems organize information. Neural circuits are not star-like. Instead, they resemble:
 - flow networks (signal propagation)
 - branching trees (divergent processing)
 - locally recurrent pathways (feedback loops)
 This suggested that the correct abstraction is not symmetry, but flow-consistent structure.
 
 The Final Approach: flow-based structural alignment
+
 Instead of matching neurons directly or enforcing strict isomorphism, I modeled each connectome as a directed flow system.
 
 Each neuron was assigned a flow signature, capturing:
@@ -79,11 +76,13 @@ Assumptions:
 - Functional role equivalence is sufficient for defining correspondence
 
 Output
+
 The final output is stored in: network.csv
+
 with:
-Column 1: MAOL neuron IDs
-Column 2: FAFB neuron IDs
-Column 3: BANC neuron IDs
+- Column 1: MAOL neuron IDs
+- Column 2: FAFB neuron IDs
+- Column 3: BANC neuron IDs
 
 Each row corresponds to neurons grouped by shared structural flow role across datasets.
 
@@ -96,4 +95,5 @@ Reproducibility
 - Export aligned neuron mappings to network.csv
 
 Final reflection
+
 The most important realization in this project was that the failure of strict graph matching methods is a modeling issue. Biological neural systems are not perfectly identical across datasets, so methods that require exact structural equivalence naturally break down. Relaxing the problem to focus on flow-consistent structural roles allowed much larger and more biologically meaningful circuits to emerge.
