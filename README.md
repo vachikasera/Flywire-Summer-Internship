@@ -1,7 +1,7 @@
 # Flywire-Summer-Internship
 
 Problem setup:
-The goal of this project was to identify the largest set of neurons that appears consistently across three connectome datasets (MAOL, FAFB, and BANC), such that the induced directed subgraphs over those neurons are structurally equivalent and weakly connected.
+The goal of this project was to identify the largest set of neurons that appears consistently across three connectome datasets, such that the induced directed subgraphs over those neurons are structurally equivalent and weakly connected.
 
 *A key difficulty is that neuron identifiers are not shared across datasets, meaning the problem is fundamentally one of structural alignment under unknown correspondence, not direct node matching.
 
