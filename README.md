@@ -12,27 +12,27 @@ A key difficulty is that neuron identifiers are not shared across datasets, mean
 
 ## Trial-and-Error History
 
-### Attempt 1 — Direct ID Correspondence (invalid assumption)
+### Attempt 1 - Direct ID Correspondence (invalid assumption)
 
-The first instinct was to check for overlapping neuron IDs across datasets, on the assumption that some shared numbering convention might exist. This failed immediately: IDs are assigned independently per reconstruction pipeline and carry no cross-dataset meaning. A spot-check on Codex confirmed that a single ID value could refer to three unrelated neurons across MAOL, FAFB, and BANC. This confirmed that the problem must be solved purely through graph structure — node identity is uninformative.
+The first instinct was to check for overlapping neuron IDs across datasets, on the assumption that some shared numbering convention might exist. This failed immediately: IDs are assigned independently per reconstruction pipeline and carry no cross-dataset meaning. A spot-check on Codex confirmed that a single ID value could refer to three unrelated neurons across MAOL, FAFB, and BANC. This confirmed that the problem must be solved purely through graph structure-- node identity is uninformative.
 
-### Attempt 2 — Strict Structural Matching (over-constrained)
+### Attempt 2 - Strict Structural Matching (over-constrained)
 
 The second approach enforced near-exact structural equivalence using local fingerprints: degree sequences, triangle counts, and higher-order neighborhood structure (2-hop neighbor degree profiles).
 
 This was too strict:
 - In the most rigorous version, the constraint search returned 0 valid circuits. No node correspondence satisfied exact induced-subgraph isomorphism once 2-hop context was required.
-- In relaxed versions (degree-pair fingerprints only, retained in the repository under the "old" tab), the method produced 3–7 node subgraphs that were verifiably isomorphic but biologically trivial in size.
+- In relaxed versions (degree-pair fingerprints only, retained in the repository under the "old" tab), the method produced 3-7 node subgraphs that were verifiably isomorphic but biologically trivial in size.
 
 Root cause: MAOL is substantially denser than FAFB (roughly 5x higher average degree), so even genuinely homologous neurons have very different absolute degree values once embedded in their respective connectomes. Exact or near-exact isomorphism is far too restrictive a model for cross-individual, cross-reconstruction biological data. Even bona fide conserved circuits do not preserve exact adjacency at the single-neuron level across animals!
 
-### Attempt 3 — Star-Based Structural Motifs
+### Attempt 3 - Star-Based Structural Motifs
 
 To get a guaranteed non-trivial result, the next approach searched for directed stars: a single hub neuron projecting to N leaf neurons, with no edges between leaves and no back-edges to the hub. Any two clean stars of the same size N are trivially isomorphic, so this structure is guaranteed identical across datasets by construction.
 
-This produced larger, more stable results, but the structure is biologically artificial -- real neural circuits are essentially never pure stars. A star match demonstrates that some large isomorphic substructure exists, but it doesn't represent a recognizable circuit motif.
+This produced larger, more stable results, but the structure is biologically artificial-- real neural circuits are essentially never pure stars. A star match demonstrates that some large isomorphic substructure exists, but it doesn't represent a recognizable circuit motif.
 
-### Attempt 4 (Final) — Flow-Based Structural Role Alignment
+### Attempt 4 (Final) - Flow-Based Structural Role Alignment
 
 At this point, I stepped back and reconsidered the problem from a more biological perspective. In my CS3 class, we were taught a useful principle when designing graph algorithms: when strict algorithmic constraints fail, it often helps to relax the model toward naturally occurring structures in the system being modeled.
 
@@ -41,14 +41,14 @@ Since connectomics is fundamentally about biological wiring, I began thinking ab
 - branching trees (divergent processing)
 - locally recurrent pathways (feedback loops)
 
-At this point the model was relaxed from symmetry (exact isomorphism, star shape) to flow-consistent structural roles- a framing more in line with how connectomics literature describes neuron function: by position in a signal-flow hierarchy (input/integration/output layers) rather than by exact wiring diagrams.
+At this point the model was relaxed from symmetry (exact isomorphism, star shape) to flow-consistent structural roles. This framing was more in line with how connectomics literature describes neuron function: by position in a signal-flow hierarchy (input/integration/output layers) rather than by exact wiring diagrams.
 
 #### Flow Signature
 Each neuron `n` is assigned a 3-tuple:
 - outgoing connectivity (signal propagation strength)
 - incoming connectivity (signal integration)
 - second-order propagation through neighbors
-where `second_order_outflow(n)` sums the out-degrees of `n`'s first 10 out-neighbors. This captures not just how many downstream targets a neuron has, but how "amplifying" those targets are — a coarse proxy for a neuron's position in a feedforward processing hierarchy (e.g., early visual relay vs. late integration).
+where `second_order_outflow(n)` sums the out-degrees of `n`'s first 10 out-neighbors. This captures not just how many downstream targets a neuron has, but how "amplifying" those targets are: a coarse proxy for a neuron's position in a feedforward processing hierarchy (e.g., early visual relay vs. late integration).
 
 #### Pipeline
 1. Load MAOL, FAFB, and BANC edge lists as directed graphs (`networkx.DiGraph`).
