@@ -1,84 +1,47 @@
-# Conserved Flow-Role Circuit in MAOL: T1-Dominated Optic-Lobe Class with Sparse Central Co-Members
+## Choice of dataset
 
-## Choice of Dataset
+I went with MAOL for the writeup. It's the smallest of the three datasets, which made it easiest to spot-check individual neurons against Codex (T1 alone has ~1,800 instances in MCNS and 1,400 in FAFB vs. 892 in MAOL). Sticking to the optic lobe also kept the sample within one functional domain, making it easier to reason about what the shared "role" meant.
 
-I went with MAOL for the biological writeup, mainly because it's the smallest and most tractable of the three datasets, which made it easier to spot-check individual neurons against Codex without drowning in instance counts (T1 alone has nearly 1,800 instances in MCNS and 1,400 in FAFB, vs. 892 in MAOL). Sticking to the male optic lobe also kept the annotated sample within a single functional domain (vision), which made it easier to reason about what the shared "role" actually meant biologically.
+## The conclusion
 
-**Composition of the sample (n=15):**
+Out of the 647-neuron candidate set, I annotated a sample of 15 MAOL neurons (table below). The result was less "one circuit" and more "one role showing up repeatedly"-- nearly every sampled neuron shares the same local signature: a handful of upstream partners and zero downstream partners within the induced subgraph. The class is dominated by T1, a classic optic-lobe intrinsic interneuron, with a scatter of central-brain neurons (AOTU050, LHAV3e2, CL253, PLP159, PLP001) sitting at an analogous "sink" position one or two steps further into the brain.
 
-| Cell type | Count | Super class | Class |
+| Cell type | Count | Super class | Class / Hemilineage |
 |---|---|---|---|
 | T1 | 4 | optic | optic_lobe_intrinsic (t1_neuron) |
-| Unidentified (NOTPRIMARY) | 6 | central | various hemilineages (VLPl2, VLPl4, VLPl&p1, SLPav1) |
+| Unidentified (NOTPRIMARY) | 6 | central | VLPl2, VLPl4, VLPl&p1, SLPav1 |
 | AOTU050 | 1 | central | — |
 | LHAV3e2 | 1 | central | SLPav1_medial |
 | CL253 | 1 | central | VPNp&v1_posterior |
 | PLP159 | 1 | central | VPNp&v1_posterior |
 | PLP001 | 1 | central | putative_primary |
 
-The dominant identified type is **T1**, an optic-lobe intrinsic interneuron with ~17–23 upstream partners and 0 downstream partners in this induced subgraph, which is consistently a "sink" within the matched circuit, despite being a major relay neuron globally (892 instances in MAOL alone, 1,400 in FAFB, 1,777 in MCNS).
+## The T1 majority
 
-## Structural Observation
+4/15 sampled neurons are T1, flagged `optic_lobe_intrinsic / t1_neuron` with a predicted neurotransmitter of glutamate. T1 cells sit in the lamina-medulla circuitry, conditioning photoreceptor signal before it reaches the medulla's motion-processing columns. Each T1 instance here has 17-23 upstream connections and 0 downstream-- a convergence point collecting from many partners whose onward output isn't captured in this subgraph.
 
-Within this role class, nearly every sampled neuron shares the signature "few upstream connections, zero downstream connections" (most commonly 1-4 upstream, 0 downstream). The T1 instances are outliers in scale (17–23
-upstream) but match the same zero-out-degree pattern. This means the flow
-signature is grouping neurons primarily by **terminal/integrator position**
-in their local subnetwork — consistent with the "second-order outflow"
-metric being low or zero for nodes with no successors, which dominates the
-signature regardless of absolute in-degree.
+What's interesting: the T1 neurons have an order of magnitude more upstream partners (17-23) than the unidentified central neurons (1-4), yet land in the same role class. Once a neuron has zero out-degree in-subgraph, the second-order-outflow term collapses toward zero for all of them, so they get grouped together despite very different absolute connectivity.
 
-## Interpretation / Hypothesis
+## The central-brain stragglers
 
-T1 neurons are well-characterized optic-lobe intrinsic interneurons of the
-fly visual system, situated in the lamina/medulla and implicated in
-contrast and motion-related signal conditioning upstream of the medulla's
-direction-selective (T4/T5) pathways T1 neurons receive synaptic input primarily from photoreceptor terminals R1-R6 and lamina monopolar cells, supplying inhibitory input to motion-detecting neurons. Their predicted neurotransmitter
-in this dataset is **glutamate** (Davis et al. 2020 reference), consistent
-with reports of T1 as a primarily inhibitory/modulatory interneuron in the
-lamina-medulla circuit.
+The other 11 are mostly unidentified (`Prelim Roughly traced`) but carry hemilineage tags pointing to VLP, SLP, and AOTU-- regions downstream of the optic lobe in visual processing. A few have real cell-type calls: AOTU050 (anterior optic tubercle pathway), LHAV3e2 (lateral horn), and CL253 / PLP159 (both `VPNp&v1_posterior`), each with 1–3 upstream / 0 downstream. My read is that these are likely downstream recipients of the same visual stream T1 is conditioning, which are not directly wired to the T1 instances here, but occupying the same "few-in, zero-out" niche one or two synapses further along.
 
-**Hypothesis:** The recurrence of T1 as the dominant *conserved terminal node*
-across MAOL/FAFB/BANC under this flow-signature alignment suggests that T1's
-**topological role as a high-convergence, zero-further-output integrator**
-is preserved across sexes and reconstructions — i.e., T1 consistently sits
-at the same "depth" in the visual processing hierarchy (receiving from many
-upstream partners, passing signal onward via pathways not captured within
-this induced subgraph). The co-occurring central-brain neurons (AOTU050,
-LHAV3e2, CL253, PLP159), several of which are themselves visual
-projection-neuron targets (AOTU050 is part of the anterior optic tubercle
-visual pathway), may represent **downstream recipients of the same visual
-information stream**, grouped here not because they are wired identically to
-T1, but because they occupy an analogous "few-in, zero-out-in-subgraph"
-position in the central brain's processing hierarchy.
+## Visualizations
 
-This supports the README's framing: the 647-neuron set is best understood as
-a **conserved flow-role population** (a recurring "sink/integrator" motif
-across the visual-to-central pipeline) rather than a single anatomically
-contiguous circuit. A verified-isomorphism pass (see README, Future Work)
-would be needed to determine which subset, if any, forms a literal shared
-wiring diagram.
+Structural Role Abundance and Shared Flow-Signature Space show where T1's signature (high in-degree, zero out-degree, low second-order outflow) sits relative to the other 89 shared role classes-- it's a clear outlier in scale but not in shape. Flow Hierarchy of Conserved Neuron Classes buckets roles into local/intermediate/global tiers; T1 falls solidly in the "local
+sink" tier alongside the central-brain stragglers, supporting the shared-role interpretation above. Relationship Network of Shared Structural Roles and Shared Circuit (Aligned Cross-Dataset Matching) show how this role class connects to neighboring roles in (out-degree, in-degree) space. T1's cluster sits adjacent to several of the central VLP/SLP roles, which is
+consistent with them occupying a similar topological position one step apart.
 
-## Visualizations (to generate)
+<img width="1377" height="662" alt="Structural Role Abundance" src="https://github.com/user-attachments/assets/87f5d378-97f6-46a6-8755-9bb0d824f5de" />
+<img width="867" height="723" alt="Shared Flow-Signature Space" src="https://github.com/user-attachments/assets/0f9e0f82-452a-4336-8592-347c9b75e78f" />
+<img width="666" height="552" alt="Flow Hierarchy of Conserved Neuron Classes" src="https://github.com/user-attachments/assets/d03d2aef-fb11-43d8-a74c-c01f5003ad07" />
 
-1. **Network graph**: `nx.draw` of the induced subgraph on the 15 sampled
-   MAOL neurons (IDs: 38644, 14463, 25422, 31821, 21886, 26305, 32787, 41488,
-   34866, 41342, 23112, 29229, 21340, 42335, 37450) plus their upstream
-   partners, colored by `Cell Type` (T1 = blue, central types = orange,
-   unidentified = gray).
-2. **Codex 3D meshes**: load each root ID at
-   `https://codex.flywire.ai/app/cell_details?dataset=optic-lobe&root_id=<ID>`
-   — the T1 neurons (38644, 32787, 37450) will show the characteristic
-   lamina-to-medulla columnar morphology; central-brain types will show
-   projections into VLP/SLP/AOTU neuropils.
+## What I'd check next
 
-## Key Citations
+This role class was built from local flow signatures, not a verified induced-subgraph isomorphism. The T1 dominance is a real, interesting signal, which suggests this corner of the candidate set captures a genuine "optic lobe sink" motif preserved across MAOL/FAFB/BANC, but confirming the 647 neurons form an isomorphic wiring diagram (not just a shared role) needs the VF2-based verification pass described in the README's Future Work section.
 
-- Davis, F.P. et al. (2020). *A genetic, genomic, and computational resource
-  for exploring neural circuit function.* eLife — predicted-neurotransmitter
-  reference used by Codex for T1 (glutamate, low confidence ~0.20).
-- Takemura, S. et al. (2013/2017). *Visual motion detection circuits in
-  Drosophila* — characterizes T1 as a lamina-medulla interneuron upstream of
-  T4/T5 direction-selective pathways.
-- Shinomiya, K. et al. (2019). *Comparisons between the medulla and lobula
-  plate columns* — provides connectivity context for optic-lobe-intrinsic
-  cell types including T1.
+## Citations
+
+- Davis, F.P. et al. (2020). *A genetic, genomic, and computational resource for exploring neural circuit function.* eLife. - source of the glutamate
+  prediction for T1 in Codex.
+- Takemura, S. et al. (2013). *A visual motion detection circuit suggested by Drosophila connectomics.* Nature. - characterizes T1 as a lamina output neuron feeding medulla motion-processing circuitry.
