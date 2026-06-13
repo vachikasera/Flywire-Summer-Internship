@@ -1,38 +1,38 @@
-# Flywire-Summer-Internship
+# Flywire-Summer-Internship Connectome Challenge
 
-Problem setup:
+## Problem Setup
 The goal of this project was to identify the largest set of neurons that appears consistently across three connectome datasets, such that the induced directed subgraphs over those neurons are structurally equivalent and weakly connected.
 
-*A key difficulty is that neuron identifiers are not shared across datasets, meaning the problem is fundamentally one of structural alignment under unknown correspondence, not direct node matching.
+A key difficulty is that neuron identifiers are not shared across datasets, meaning this is fundamentally a problem of structural alignment under unknown correspondence. There is no ground-truth mapping file; any correspondence must be inferred purely from graph topology.
 
-Datasets used:
+## Datasets Used
 - MAOL (male optic lobe)
 - FAFB (female brain EM reconstruction)
 - BANC (female central nervous system)
 
-Early attempts and failure modes:
-1. Direct correspondence (invalid assumption)
+## Trial-and-Error History
 
-I initially tried simple matching based on neuron IDs, assuming there might be overlap or partial alignment between datasets. This quickly failed because IDs are completely independent across reconstructions. This made it clear that the problem had to be solved purely through graph structure.
+### Attempt 1 — Direct ID Correspondence (invalid assumption)
 
-2. Strict structural matching (over-constrained)
+The first instinct was to check for overlapping neuron IDs across datasets, on the assumption that some shared numbering convention might exist. This failed immediately: IDs are assigned independently per reconstruction pipeline and carry no cross-dataset meaning. A spot-check on Codex confirmed that a single ID value could refer to three unrelated neurons across MAOL, FAFB, and BANC. This confirmed that the problem must be solved purely through graph structure — node identity is uninformative.
 
-Next, I tried enforcing near-exact structural equivalence using local fingerprints (degree, triangle counts, and higher-order neighborhood structure).
+### Attempt 2 — Strict Structural Matching (over-constrained)
 
-This approach produced very small or trivial matches:
-- In some cases, the method returned no valid circuits at all (0 nodes) due to overly strict constraints.
-- In more relaxed versions (the code is "old" under Github links), it produced only very small subgraphs (3–7 nodes) that were structurally consistent but far too limited to represent meaningful circuits.
+The second approach enforced near-exact structural equivalence using local fingerprints: degree sequences, triangle counts, and higher-order neighborhood structure (2-hop neighbor degree profiles).
 
-The core issue was that requiring exact or near-exact isomorphism across noisy biological datasets is too restrictive. Even biologically conserved circuits do not preserve exact adjacency at the neuron level across reconstructions.
+This was too strict:
+- In the most rigorous version, the constraint search returned 0 valid circuits. No node correspondence satisfied exact induced-subgraph isomorphism once 2-hop context was required.
+- In relaxed versions (degree-pair fingerprints only, retained in the repository under the "old" tab), the method produced 3–7 node subgraphs that were verifiably isomorphic but biologically trivial in size.
 
-Immediate idea:
-Star-based structure
+Root cause: MAOL is substantially denser than FAFB (roughly 5x higher average degree), so even genuinely homologous neurons have very different absolute degree values once embedded in their respective connectomes. Exact or near-exact isomorphism is far too restrictive a model for cross-individual, cross-reconstruction biological data. Even bona fide conserved circuits do not preserve exact adjacency at the single-neuron level across animals!
 
-After these failures, I shifted to a more relaxed structural motif: the directed star.
-A star is defined as a single hub neuron projecting to many independent leaf neurons. Any two clean stars of the same size are isomorphic, which makes comparison across datasets straightforward. This approach produced much larger and more stable results, but it was also somewhat artificial from a biological perspective because it enforces a highly centralized structure that does not fully reflect how real neural circuits behave.
+### Attempt 3 — Star-Based Structural Motifs
 
-Key insight:
-Shift toward natural structure
+To get a guaranteed non-trivial result, the next approach searched for directed stars: a single hub neuron projecting to N leaf neurons, with no edges between leaves and no back-edges to the hub. Any two clean stars of the same size N are trivially isomorphic, so this structure is guaranteed identical across datasets by construction.
+
+This produced larger, more stable results, but the structure is biologically artificial -- real neural circuits are essentially never pure stars. A star match demonstrates that some large isomorphic substructure exists, but it doesn't represent a recognizable circuit motif.
+
+### Attempt 4 (Final) — Flow-Based Structural Role Alignment
 
 At this point, I stepped back and reconsidered the problem from a more biological perspective. In my CS3 class, we were taught a useful principle when designing graph algorithms: when strict algorithmic constraints fail, it often helps to relax the model toward naturally occurring structures in the system being modeled.
 
@@ -40,60 +40,70 @@ Since connectomics is fundamentally about biological wiring, I began thinking ab
 - flow networks (signal propagation)
 - branching trees (divergent processing)
 - locally recurrent pathways (feedback loops)
-This suggested that the correct abstraction is not symmetry, but flow-consistent structure.
 
-The Final Approach: flow-based structural alignment
+At this point the model was relaxed from symmetry (exact isomorphism, star shape) to flow-consistent structural roles- a framing more in line with how connectomics literature describes neuron function: by position in a signal-flow hierarchy (input/integration/output layers) rather than by exact wiring diagrams.
 
-Instead of matching neurons directly or enforcing strict isomorphism, I modeled each connectome as a directed flow system.
-
-Each neuron was assigned a flow signature, capturing:
+#### Flow Signature
+Each neuron `n` is assigned a 3-tuple:
 - outgoing connectivity (signal propagation strength)
 - incoming connectivity (signal integration)
 - second-order propagation through neighbors
-This creates a structural representation of each neuron’s role in information flow, rather than its exact wiring pattern.
+where `second_order_outflow(n)` sums the out-degrees of `n`'s first 10 out-neighbors. This captures not just how many downstream targets a neuron has, but how "amplifying" those targets are — a coarse proxy for a neuron's position in a feedforward processing hierarchy (e.g., early visual relay vs. late integration).
 
-Circuit construction
-The final pipeline works as follows:
-- Compute flow signatures for all neurons in MAOL, FAFB, and BANC.
-- Group neurons within each dataset by identical structural signatures.
-- Identify signature classes that appear in all three datasets.
-- Treat these shared classes as conserved “structural roles.”
-- Merge all neurons belonging to shared roles into a unified circuit representation.
-- Extract the largest weakly connected component from this merged structure.
-This produces a circuit based on role equivalence rather than exact structural identity, which is more robust to biological variability.
+#### Pipeline
+1. Load MAOL, FAFB, and BANC edge lists as directed graphs (`networkx.DiGraph`).
+2. Compute the flow signature for every neuron in each dataset.
+3. Group neurons within each dataset by identical signature value, producing per-dataset **signature classes**.
+4. Intersect signature classes across all three datasets — a class is "shared" if at least one neuron in each dataset carries that exact `(out, in, out2)` triple. This yielded **90 shared structural roles**.
+5. For each shared role, pool all neurons carrying that signature in each dataset into parallel lists.
+6. Export the pooled, position-aligned lists to `network.csv` (3 columns: MAOL / FAFB / BANC; 647 rows, bounded by the smallest pooled list, MAOL).
 
-Compared to earlier attempts:
-- Unlike strict isomorphism methods, it does not collapse to trivial solutions (3–7 nodes).
-- Unlike star-based models, it does not impose unrealistic centralization.
-- Unlike local fingerprinting, it preserves enough structural context to support circuit-level assembly.
+## Assumptions
 
-Most importantly, it aligns better with the biological intuition that neural circuits are defined by function and flow, not exact wiring replication across individuals.
+- Graphs are directed and unweighted (synapse-count weights discarded).
+- Neuron identities (IDs) are not comparable across datasets.
+- Small structural variation across datasets is expected and not penalized - exact adjacency is not required at the single-neuron level.
+- Functional/flow-role equivalence is an acceptable relaxation of strict structural correspondence for the purposes of identifying a candidate conserved circuit.
 
-Assumptions:
-- Graphs are directed and unweighted
-- Neuron identities are not comparable across datasets
-- Small structural variation across datasets is expected and not penalized
-- Functional role equivalence is sufficient for defining correspondence
+## Important Caveat: Role-Equivalence vs. Verified Isomorphism
+`network.csv` should be read as a candidate correspondence / role-equivalence map, not as a verified isomorphic circuit in the strict sense defined by the challenge.
 
-Output
+Concretely:
 
-The final output is stored in: network.csv
+- Two neurons are placed in the same row if they share a flow signature *within their own dataset* and occupy the same position in the pooled, signature-ordered list across datasets. This guarantees role similarity (similar local in/out/second-order flow), but it does not by itself guarantee that the induced directed subgraph over the 647 MAOL neurons is isomorphic to the induced subgraphs over the corresponding FAFB and BANC neurons.
+- In other words: the rows are aligned by degree-flow class membership, not by an edge-by-edge correspondence check between the three induced subgraphs.
 
-with:
-- Column 1: MAOL neuron IDs
-- Column 2: FAFB neuron IDs
-- Column 3: BANC neuron IDs
+This is a deliberate relaxation, consistent with the trial-and-error progression above (Attempts 2–3 showed that strict isomorphism collapses to either 0 or single-digit node counts). However, it means `network.csv` represents a hypothesis about conserved circuit membership rather than a proof of structural identity.
 
-Each row corresponds to neurons grouped by shared structural flow role across datasets.
+### Future Work (Verification Step)
+To close this gap, a follow-up pass should:
 
-Reproducibility
-- Load MAOL, FAFB, and BANC edge lists
-- Construct directed graphs
-- Compute flow signatures for each node
-- Group nodes by structural role within each dataset
-- Intersect shared role classes across datasets
-- Export aligned neuron mappings to network.csv
+1. Take the 647-neuron candidate set per dataset.
+2. Compute the induced directed subgraph for each dataset's candidate set.
+3. Run a graph-isomorphism / maximum-common-subgraph check (e.g.,`networkx.algorithms.isomorphism.DiGraphMatcher`, or a VF2-based search) between the three induced subgraphs.
+4. Report the size of the largest verified-isomorphic subset, and use that as the final answer to the strict version of the challenge with the 647-neuron role-equivalence map serving as the candidate pool / search space for that verification, rather than the final answer itself.
 
-Final reflection
+## Reproducibility
 
-The most important realization in this project was that the failure of strict graph matching methods is a modeling issue. Biological neural systems are not perfectly identical across datasets, so methods that require exact structural equivalence naturally break down. Relaxing the problem to focus on flow-consistent structural roles allowed much larger and more biologically meaningful circuits to emerge.
+```bash
+pip install pandas networkx matplotlib
+```
+
+1. Download the three edge-list CSVs (MAOL, FAFB, BANC) and update the `files` dict paths at the top of the notebook/script.
+2. Run cells in order:
+   - **Load graphs**: builds `networkx.DiGraph` objects from each edge list.
+   - **Compute signatures**: applies `signature(G, n)` to every node.
+   - **Build signature maps**: groups nodes by signature within each dataset.
+   - **Intersect shared signatures**: finds the 90 signature classes present in all three datasets.
+   - **Pool and export**: builds `network.csv` (647 rows × 3 columns).
+3. Visualization cells (optional) produce:
+   - `shared_roles.png` — stacked bar chart of the 15 largest shared structural roles by total neuron count.
+   - `flow_signature_space.png` — scatter plot of shared signatures in (out-degree, in-degree) space, sized by second-order outflow.
+   - `flow_hierarchy.png` — bar chart bucketing shared roles into Local / Intermediate / Global flow tiers by second-order outflow magnitude (`<100`, `100–1000`, `>=1000`).
+   - `role_network.png` — graph of shared signature classes connected when their (out-degree, in-degree) values are within Manhattan distance 10, illustrating clustering of related structural roles.
+
+## Final Reflection
+
+The central lesson of this project was that **the failure of strict graph matching is a modeling problem, not just an algorithmic one**. Connectomes from different individuals (and different sexes/sequencing efforts, in this case) are not expected to be exactly isomorphic at the level of individual synaptic adjacency, as biological variability, reconstruction error, and individual differences all break exact structural correspondence.
+
+Relaxing the correspondence criterion from exact isomorphism to flow-role equivalence allowed a much larger (647-neuron) candidate set to emerge, consistent with the idea (common in computational neuroscience) that conserved circuits are better characterized by their functional position in an information-flow hierarchy than by exact wiring-diagram identity. The tradeoff, made explicit above, is that this candidate set requires a downstream verification step before it can be called a strictly isomorphic circuit.
