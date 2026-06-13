@@ -1,69 +1,84 @@
-Biological significance of the shared circuit
+# Conserved Flow-Role Circuit in MAOL: T1-Dominated Optic-Lobe Class with Sparse Central Co-Members
 
-The largest shared structure across MAOL, FAFB, and BANC is a flow-consistent induced circuit obtained via structural role alignment in directed connectomes. Instead of requiring exact subgraph isomorphism (which collapses under cross-dataset variability), neurons were grouped by a flow signature capturing first- and second-order directed connectivity statistics. The intersection of these structural roles across datasets yields a conserved weakly connected circuit spanning all three connectomes. This aligns with prior work (Tschopp et al. (2024)) showing that Drosophila connectomes exhibit strong modular flow structure and hierarchical organization rather than globally rigid motifs, with information propagating through distributed subnetworks rather than isolated units.
+## Choice of Dataset
 
-Structural interpretation
+I went with MAOL for the biological writeup, mainly because it's the smallest and most tractable of the three datasets, which made it easier to spot-check individual neurons against Codex without drowning in instance counts (T1 alone has nearly 1,800 instances in MCNS and 1,400 in FAFB, vs. 892 in MAOL). Sticking to the male optic lobe also kept the annotated sample within a single functional domain (vision), which made it easier to reason about what the shared "role" actually meant biologically.
 
-The recovered circuit is best interpreted as a distributed propagation backbone rather than a discrete motif (e.g., clique or star).
+**Composition of the sample (n=15):**
 
-Each participating neuron class exhibits:
-- high outward reach (signal broadcasting / divergence)
-- non-trivial convergence (integration of upstream inputs)
-- persistence of second-order reachability (multi-hop propagation stability)
+| Cell type | Count | Super class | Class |
+|---|---|---|---|
+| T1 | 4 | optic | optic_lobe_intrinsic (t1_neuron) |
+| Unidentified (NOTPRIMARY) | 6 | central | various hemilineages (VLPl2, VLPl4, VLPl&p1, SLPav1) |
+| AOTU050 | 1 | central | — |
+| LHAV3e2 | 1 | central | SLPav1_medial |
+| CL253 | 1 | central | VPNp&v1_posterior |
+| PLP159 | 1 | central | VPNp&v1_posterior |
+| PLP001 | 1 | central | putative_primary |
 
-These properties are consistent with known organization of fly sensory systems, where computation is distributed across layered feedforward and recurrent pathways rather than localized single-node hubs. Recent connectome-constrained modeling work similarly demonstrates that structural connectivity alone can strongly constrain functional dynamics in Drosophila visual circuits (Grindrod et al. (2024)).
+The dominant identified type is **T1**, an optic-lobe intrinsic interneuron with ~17–23 upstream partners and 0 downstream partners in this induced subgraph, which is consistently a "sink" within the matched circuit, despite being a major relay neuron globally (892 instances in MAOL alone, 1,400 in FAFB, 1,777 in MCNS).
 
-Functional relevance in visual and central pathways
+## Structural Observation
 
-Although neuron identity is not preserved across datasets, many matched flow-role classes align with known properties of optic-lobe and early sensory processing circuits, including:
-- columnar-to-wide-field signal integration
-- lateral inhibition shaping directional selectivity
-- feedforward divergence in motion processing streams
+Within this role class, nearly every sampled neuron shares the signature "few upstream connections, zero downstream connections" (most commonly 1-4 upstream, 0 downstream). The T1 instances are outliers in scale (17–23
+upstream) but match the same zero-out-degree pattern. This means the flow
+signature is grouping neurons primarily by **terminal/integrator position**
+in their local subnetwork — consistent with the "second-order outflow"
+metric being low or zero for nodes with no successors, which dominates the
+signature regardless of absolute in-degree.
 
-Experimental studies of the optic lobe show that motion processing relies on parallel subnetworks with structured inhibitory and excitatory interactions, rather than single-path routing (Pokusaeva 2023). This supports the interpretation that the recovered circuit corresponds to a conserved computation layer for signal routing and normalization, rather than a single anatomically fixed microcircuit.
+## Interpretation / Hypothesis
 
-Cross-dataset invariance
+T1 neurons are well-characterized optic-lobe intrinsic interneurons of the
+fly visual system, situated in the lamina/medulla and implicated in
+contrast and motion-related signal conditioning upstream of the medulla's
+direction-selective (T4/T5) pathways T1 neurons receive synaptic input primarily from photoreceptor terminals R1-R6 and lamina monopolar cells, supplying inhibitory input to motion-detecting neurons. Their predicted neurotransmitter
+in this dataset is **glutamate** (Davis et al. 2020 reference), consistent
+with reports of T1 as a primarily inhibitory/modulatory interneuron in the
+lamina-medulla circuit.
 
-A key observation is that these structural roles persist across:
-- MAOL (dense optic-lobe focused reconstruction)
-- FAFB (whole-brain female connectome)
-- BANC (central nervous system reconstruction)
+**Hypothesis:** The recurrence of T1 as the dominant *conserved terminal node*
+across MAOL/FAFB/BANC under this flow-signature alignment suggests that T1's
+**topological role as a high-convergence, zero-further-output integrator**
+is preserved across sexes and reconstructions — i.e., T1 consistently sits
+at the same "depth" in the visual processing hierarchy (receiving from many
+upstream partners, passing signal onward via pathways not captured within
+this induced subgraph). The co-occurring central-brain neurons (AOTU050,
+LHAV3e2, CL253, PLP159), several of which are themselves visual
+projection-neuron targets (AOTU050 is part of the anterior optic tubercle
+visual pathway), may represent **downstream recipients of the same visual
+information stream**, grouped here not because they are wired identically to
+T1, but because they occupy an analogous "few-in, zero-out-in-subgraph"
+position in the central brain's processing hierarchy.
 
-Despite differences in scale, reconstruction method, and segmentation pipelines, the same flow-role classes remain detectable. This is consistent with broader findings that Drosophila connectomes exhibit strong modularity and stable functional clustering across datasets, even when synaptic weights vary substantially (Lappalainen et al. (2024)).
+This supports the README's framing: the 647-neuron set is best understood as
+a **conserved flow-role population** (a recurring "sink/integrator" motif
+across the visual-to-central pipeline) rather than a single anatomically
+contiguous circuit. A verified-isomorphism pass (see README, Future Work)
+would be needed to determine which subset, if any, forms a literal shared
+wiring diagram.
 
-Biological interpretation
+## Visualizations (to generate)
 
-The recovered structure is best understood as a conserved flow motif class, rather than a specific circuit.
+1. **Network graph**: `nx.draw` of the induced subgraph on the 15 sampled
+   MAOL neurons (IDs: 38644, 14463, 25422, 31821, 21886, 26305, 32787, 41488,
+   34866, 41342, 23112, 29229, 21340, 42335, 37450) plus their upstream
+   partners, colored by `Cell Type` (T1 = blue, central types = orange,
+   unidentified = gray).
+2. **Codex 3D meshes**: load each root ID at
+   `https://codex.flywire.ai/app/cell_details?dataset=optic-lobe&root_id=<ID>`
+   — the T1 neurons (38644, 32787, 37450) will show the characteristic
+   lamina-to-medulla columnar morphology; central-brain types will show
+   projections into VLP/SLP/AOTU neuropils.
 
-Instead of encoding a single fixed wiring diagram, it likely reflects a repeated organizational principle: neural computation in Drosophila is implemented through distributed, directionally biased flow networks with conserved propagation roles.
+## Key Citations
 
-This interpretation is supported by both experimental and modeling literature showing that:
-- early visual processing can be predicted from connectivity structure alone
-- connectomes decompose into semi-independent functional modules with directional information flow
-- circuits are more reliably described by cell-type interactions than individual neuron identity
-
-Limitations
-
-While the circuit is structurally consistent across datasets, it should not be interpreted as a uniquely identified biological “unit”:
-- correspondence is defined in role space, not neuron identity space
-- increasing signature specificity reduces recoverable circuit size rapidly
-- decreasing constraints increases size but reduces biological specificity
-
-Thus, the result represents a tradeoff between biological fidelity and structural recoverability.
-
-Conclusion
-
-The main result is that cross-connectome alignment is more stable when framed as a flow-role matching problem rather than a strict graph isomorphism problem. This suggests that conserved biological signal processing is better captured by invariants of information flow structure, rather than exact synaptic wiring patterns. The recovered circuit therefore represents a robust computational scaffold in the Drosophila brain, consistent with modern views of the connectome as a modular, flow-organized system rather than a rigid wiring diagram.
-
-Key references
-
-FlyWire Codex connectome datasets (MAOL v1.1, FAFB v783, BANC v626)
-https://codex.flywire.ai
-
-Lappalainen et al. (2024). Connectome-constrained networks predict neural activity in Drosophila visual processing. Nature.
-
-Tschopp et al. (2018). Connectome-based models of the Drosophila visual system. arXiv.
-
-Grindrod et al. (2024). Modularity, hierarchical flows and symmetry of the Drosophila connectome. arXiv.
-
-Pokusaeva (ISTA thesis). Optic flow-based navigation circuits in Drosophila.
+- Davis, F.P. et al. (2020). *A genetic, genomic, and computational resource
+  for exploring neural circuit function.* eLife — predicted-neurotransmitter
+  reference used by Codex for T1 (glutamate, low confidence ~0.20).
+- Takemura, S. et al. (2013/2017). *Visual motion detection circuits in
+  Drosophila* — characterizes T1 as a lamina-medulla interneuron upstream of
+  T4/T5 direction-selective pathways.
+- Shinomiya, K. et al. (2019). *Comparisons between the medulla and lobula
+  plate columns* — provides connectivity context for optic-lobe-intrinsic
+  cell types including T1.
