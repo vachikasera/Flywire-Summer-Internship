@@ -99,10 +99,10 @@ pip install pandas networkx matplotlib
    - **Intersect shared signatures**: finds the 90 signature classes present in all three datasets.
    - **Pool and export**: builds `network.csv` (647 rows × 3 columns).
 3. Visualization cells (optional) produce:
-   - `shared_roles.png` — stacked bar chart of the 15 largest shared structural roles by total neuron count.
-   - `flow_signature_space.png` — scatter plot of shared signatures in (out-degree, in-degree) space, sized by second-order outflow.
-   - `flow_hierarchy.png` — bar chart bucketing shared roles into Local / Intermediate / Global flow tiers by second-order outflow magnitude (`<100`, `100–1000`, `>=1000`).
-   - `role_network.png` — graph of shared signature classes connected when their (out-degree, in-degree) values are within Manhattan distance 10, illustrating clustering of related structural roles.
+   - `shared_roles.png` - stacked bar chart of the 15 largest shared structural roles by total neuron count.
+   - `flow_signature_space.png` - scatter plot of shared signatures in (out-degree, in-degree) space, sized by second-order outflow.
+   - `flow_hierarchy.png` - bar chart bucketing shared roles into Local / Intermediate / Global flow tiers by second-order outflow magnitude (`<100`, `100–1000`, `>=1000`).
+   - `role_network.png` - graph of shared signature classes connected when their (out-degree, in-degree) values are within Manhattan distance 10, illustrating clustering of related structural roles.
 
 ## Final Reflection
 
