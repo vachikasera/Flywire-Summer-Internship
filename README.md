@@ -80,7 +80,7 @@ To close this gap, a follow-up pass should:
 
 1. Take the 647-neuron candidate set per dataset.
 2. Compute the induced directed subgraph for each dataset's candidate set.
-3. Run a graph-isomorphism / maximum-common-subgraph check (e.g.,`networkx.algorithms.isomorphism.DiGraphMatcher`, or a VF2-based search) between the three induced subgraphs.
+3. Run a graph-isomorphism / maximum-common-subgraph check (like a `networkx.algorithms.isomorphism.DiGraphMatcher`, or a VF2-based search) between the three induced subgraphs.
 4. Report the size of the largest verified-isomorphic subset, and use that as the final answer to the strict version of the challenge with the 647-neuron role-equivalence map serving as the candidate pool / search space for that verification, rather than the final answer itself.
 
 ## Reproducibility
