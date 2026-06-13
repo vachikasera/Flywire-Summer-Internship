@@ -10,7 +10,7 @@ A key difficulty is that neuron identifiers are not shared across datasets, mean
 - FAFB (female brain EM reconstruction)
 - BANC (female central nervous system)
 
-All three overlap in the optic lobe, which mattered once T1 (an optic-lobe intrinsic neuron) turned out to be the dominant hub in the shared role class. This overlap is why a T1-centered match is meaningful rather than coincidental.
+All three overlap in the optic lobe, which mattered once T1 turned out to be the dominant hub in the shared role class. T1 is an optic-lobe intrinsic neuron, so for the cross-dataset match to mean anything biologically, all three datasets needed to actually contain optic lobe tissue in the first place. MCNS, by contrast, spans the whole CNS and would have diluted the comparison.
 
 ## Trial-and-Error History
 
